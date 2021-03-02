@@ -23,6 +23,7 @@
     border-radius: 50px;
     margin-bottom: 10px;
     overflow: hidden;
+    position: relative;
 }
 
 .pimg img{
@@ -50,7 +51,7 @@
     color: rgb(46, 138, 95);
 }
 
-#edit{
+.edit{
     width: 30px;
     height: 30px;
     background-color: rgb(219, 219, 219);
@@ -62,4 +63,22 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+#editpic{
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 40px 20px rgba(0, 0, 0, 0.603);
+    cursor: pointer;
+}
+
+.pimg:hover #editpic{
+    display: flex;
+}
+
+#uploadpicf{
+    display: none;
 }

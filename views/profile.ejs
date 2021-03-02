@@ -1,24 +1,43 @@
 <% include ./partials/header.ejs %>
     
     <link rel="stylesheet" href="../stylesheets/profile.css">
+
+    <form id="uploadpicf" action='/uploadpic/<%= data._id %>' enctype="multipart/form-data" method="POST" >
+        <input type="file" name="profilepic">
+    </form>
     
        <div class="card">
         <a href="#">
-            <div id="edit">
+            <div class="edit">
                 <i class="ri-edit-2-line"></i>
             </div>
         </a>
         <div class="pintro">
             <div class="pimg">
-                <img src="" alt="">
+                <img src=<%= data.profilepic %> alt="">
+                
+                <div id="editpic" class="edit">
+                    <i class="ri-edit-2-line"></i>
+                </div>
             </div>
-            <h3>User Name</h3>    
+            <h3><%= data.name %></h3>    
         </div>
         <div class="info">
             <h4>Information</h4>
-            <p><b>Full Name</b> </p>
             <p><b>Email</b> <%= data.email %></p>
-            <p><b>Phone No.</b> 8839736299</p>
+            <p><b>Phone No.</b> <%= data.contact %></p>
         </div>
        </div>
+
+    <script>
+        var ebtn = document.querySelector('#editpic');
+        var uform = document.querySelector('#uploadpicf')
+
+        ebtn.addEventListener('click', ()=>{
+            uform.profilepic.click();
+        });
+        uform.profilepic.addEventListener('change', ()=>{
+            uform.submit();
+        });
+    </script>
 <% include ./partials/footer.ejs %>

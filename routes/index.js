@@ -8,11 +8,11 @@ const jwt = require('jsonwebtoken');
 
 var storage = multer.diskStorage({
   destination: (req, file, cb)=>{
-    cb(null, './public/images');
+    cb(null, './public/images/Uploads');
   },
 
   filename: (req, file, cb)=>{
-    cb(null, Date.now()+ '-' + file.fieldname);
+    cb(null, Date.now()+ '-' + file.originalname);
   }
 });
 
@@ -31,15 +31,29 @@ router.get('/loginp', (req, res)=>{
   res.render('loginp');
 });
 
-router.get('/profile', (req, res)=>{
-  g
-  res.render('profile');
+router.get('/profile/:id', (req, res)=>{
+  userModel.findById(req.params.id)
+  .then(fuser =>{
+    res.render('profile', {data: fuser});
+  }).
+  catch(err => res.send(err));
+});
+
+router.post('/uploadpic/:id', upload.single('profilepic'), (req, res)=>{
+  userModel.findById(req.params.id)
+  .then(fuser=>{
+    fuser.profilepic = `../images/Upoads/${req.file.filename}`;
+    fuser.save()
+    .then(s =>{
+      res.redirect(`/profile/${s._id}`);
+    });
+  });
 });
 
 router.post('/reg', (req, res)=>{
-  const { email, password } = req.body;
+  const { name, contact, email, password } = req.body;
 
-  const newUser = new userModel({ email, password});
+  const newUser = new userModel({ name, contact, email, password});
   
   userModel.findOne({email})
   .then(user => {
@@ -47,41 +61,39 @@ router.post('/reg', (req, res)=>{
 
     bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(newUser.password, salt, (err, hash) => {
-          if(err) throw err;
+          if(err) res.send(err);
           newUser.password = hash;
           newUser.save()
           .then(sUser=>{
-            res.redirect('profile');
             console.log(sUser);
+            res.redirect(`/profile/${sUser._id}`);
           })
           .catch(err=>{
-            res.send(err);
             console.log(err);
+            res.send(err);
           });
       });
+    });
   });
-});
-
 });
 
 router.post('/login', (req, res)=>{
 
-const { email, password } = req.body;
+  const { email, password } = req.body;
 
-userModel.findOne({email})
-.then(fuser =>{
-  if(!fuser) res.send('user not found!');
+  userModel.findOne({email})
+  .then(fuser =>{
+    if(!fuser) res.send('user not found!');
 
-  bcrypt.compare(password, fuser.password)
-  .then(isMatch =>{
-    if(!isMatch) res.send('incorrect password!');
+    bcrypt.compare(password, fuser.password)
+    .then(isMatch =>{
+      if(!isMatch) res.send('incorrect password!');
 
-    const token = jwt.sign({fuser}, 'djiefdj3df;dkd', { expiresIn: 3600 });
-    req.header('auth-token', token);
-    res.redirect('/profile');
+      const token = jwt.sign({fuser}, 'djiefdj3df;dkd', { expiresIn: 3600 });
+      req.header('auth-token', token);
+      res.redirect(`/profile/${fuser._id}`);
+    });
   });
-});
-
 
 });
 
