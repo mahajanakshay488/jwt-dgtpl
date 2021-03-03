@@ -13,10 +13,16 @@
     <nav>
         <h4>JWT Auth Project</h4>
         <ul>
-            <a href="/userslist"><li>Users List</li></a>
-            <a href="/"><li>SignUp</li></a>
-            <a href="loginp"><li>SignIn</li></a>
-            <a href="/logout"><li>Logout</li></a>
+                <a href="/userslist"><li>Users List</li></a>
+            
+            <% if(!login){%>
+
+                <a href="/"><li>SignUp</li></a>
+                <a href="loginp"><li>SignIn</li></a>
+
+            <%} %>
+
+                <a href="/logout"><li>Logout</li></a>
         </ul>
     </nav>
     <main>

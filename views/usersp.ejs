@@ -1,7 +1,10 @@
 <% include ./partials/header.ejs %>
-
+  <link rel="stylesheet" href="../stylesheets/usersp.css">
   <ul>
-      <li>users list</li>
+    <h3>Users List</h3>
+    <% data.forEach(u => { %>
+      <li class="userli"><%= u.name %></li>
+    <% }) %>
   </ul>
 
 <% include ./partials/footer.ejs %>

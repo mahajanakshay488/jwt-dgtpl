@@ -6,43 +6,55 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+
+/* Multer Code for Upload Image */
 var storage = multer.diskStorage({
   destination: (req, file, cb)=>{
     cb(null, './public/images/Uploads');
   },
 
   filename: (req, file, cb)=>{
-    cb(null, Date.now()+ '-' + file.originalname);
+    cb(null, Date.now() + file.originalname);
   }
 });
 
 var upload = multer({storage: storage});
 
+
 /* GET home page. */
 router.get('/', function(req, res) {
-  res.render('index');
+  res.render('index', {login: false});
 });
 
+
+/* GET Users-List page. users.ejs */
 router.get('/userslist', (req, res)=>{
-  res.render('usersp');
+  userModel.find()
+  .then(users => {
+    res.render('usersp', {data: users, login: true});
+  });
 });
+
+/* Login-Page page. */
 
 router.get('/loginp', (req, res)=>{
-  res.render('loginp');
+  res.render('loginp', {login: false});
 });
 
+/* Profile page. */
 router.get('/profile/:id', (req, res)=>{
   userModel.findById(req.params.id)
   .then(fuser =>{
-    res.render('profile', {data: fuser});
+    res.render('profile', {data: fuser, login: true});
   }).
   catch(err => res.send(err));
 });
 
+/* Profile-Pic-Upload Route. */
 router.post('/uploadpic/:id', upload.single('profilepic'), (req, res)=>{
   userModel.findById(req.params.id)
   .then(fuser=>{
-    fuser.profilepic = `../images/Upoads/${req.file.filename}`;
+    fuser.profilepic = `${req.file.filename}`;
     fuser.save()
     .then(s =>{
       res.redirect(`/profile/${s._id}`);
@@ -50,10 +62,13 @@ router.post('/uploadpic/:id', upload.single('profilepic'), (req, res)=>{
   });
 });
 
+/* User Register Route. */
 router.post('/reg', (req, res)=>{
-  const { name, contact, email, password } = req.body;
+  const { name, email, contact, password } = req.body;
 
-  const newUser = new userModel({ name, contact, email, password});
+  const profilepic = '../images/Uploads/def.webp';
+
+  const newUser = new userModel({ name, email, profilepic, contact, password});
   
   userModel.findOne({email})
   .then(user => {
@@ -77,6 +92,7 @@ router.post('/reg', (req, res)=>{
   });
 });
 
+/* User Login Route. */
 router.post('/login', (req, res)=>{
 
   const { email, password } = req.body;
