@@ -1,0 +1,11 @@
+<% include ./partials/header.ejs %>
+
+    <form action="/updateinfo/<%= data._id %>" method="POST">
+        <h4>Edit Your Profile</h4>
+        <input type="text" name="name" value="<%= data.name %>" placeholder="full name">
+        <input type="email" name="email" value="<%= data.email %>" placeholder="email">
+        <input type="contact" name="contact" value="<%= data.contact %>" placeholder="contact no.">
+        <input type="submit" value="Update Profile">
+    </form>
+
+<% include ./partials/footer.ejs %>

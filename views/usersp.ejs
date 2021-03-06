@@ -1,10 +1,19 @@
 <% include ./partials/header.ejs %>
   <link rel="stylesheet" href="../stylesheets/usersp.css">
+
+  <input type="hidden" value="<%= token%>">
+  
   <ul>
     <h3>Users List</h3>
     <% data.forEach(u => { %>
       <li class="userli"><%= u.name %></li>
     <% }) %>
   </ul>
+
+  <script>
+    const token = document.querySelector('input[type="hidden"]').value;
+    localStorage.setItem('token', token);
+  </script>
+
 
 <% include ./partials/footer.ejs %>

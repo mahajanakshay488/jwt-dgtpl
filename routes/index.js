@@ -6,6 +6,10 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const {isLoggedIn} = require('./verifyToken');
+
+let G_Token = null;
+
 
 /* Multer Code for Upload Image */
 var storage = multer.diskStorage({
@@ -20,44 +24,76 @@ var storage = multer.diskStorage({
 
 var upload = multer({storage: storage});
 
+router.get('/*', (req,res,next)=>{
+  req.header('auth-token', G_Token);
+  next();
+});
 
 /* GET home page. */
 router.get('/', function(req, res) {
   res.render('index', {login: false});
 });
 
-
 /* GET Users-List page. users.ejs */
-router.get('/userslist', (req, res)=>{
+router.get('/userslist', isLoggedIn,(req, res)=>{
   userModel.find()
   .then(users => {
-    res.render('usersp', {data: users, login: true});
+    // console.log(req.user);
+    // res.send(req.user);
+    res.render('usersp', {data: users, login: true, token: G_Token});
   });
 });
 
 /* Login-Page page. */
-
 router.get('/loginp', (req, res)=>{
   res.render('loginp', {login: false});
 });
 
 /* Profile page. */
-router.get('/profile/:id', (req, res)=>{
-  userModel.findById(req.params.id)
-  .then(fuser =>{
-    res.render('profile', {data: fuser, login: true});
+router.get('/profile', isLoggedIn ,(req, res)=>{
+  userModel.findById(req.user._id)
+  .then(user =>{
+    res.render('profile', {data: user, login: true});
   }).
   catch(err => res.send(err));
+});
+
+/* Edit Profile page */
+router.get('/edit/:id', (req, res)=>{
+  userModel.findById(req.params.id)
+  .then(data =>{
+    res.render('editp', {login: false, data});
+  })
+  .catch(err => res.send(err));
+});
+
+/* Update Profile route */
+router.post('/updateinfo/:id', (req, res)=>{
+  
+  const { name, email, contact } = req.body;
+  const updatedUser = { name, email, contact };
+
+  userModel.findByIdAndUpdate(
+    req.params.id, 
+    {$set: updatedUser}, 
+    {new: true, useFindAndModify: false} 
+  )
+  .then(u =>{
+    const token = jwt.sign({u}, 'djiefdj3df;dkd', { expiresIn: 3600 });
+    req.header('auth-token', token);
+    res.redirect('/profile');
+  })
+  .catch(err=> res.send('internal server problem !'));
 });
 
 /* Profile-Pic-Upload Route. */
 router.post('/uploadpic/:id', upload.single('profilepic'), (req, res)=>{
   userModel.findById(req.params.id)
-  .then(fuser=>{
-    fuser.profilepic = `${req.file.filename}`;
-    fuser.save()
+  .then(user=>{
+    user.profilepic = `${req.file.filename}`;
+    user.save()
     .then(s =>{
-      res.redirect(`/profile/${s._id}`);
+      res.redirect('/profile');
     });
   });
 });
@@ -81,7 +117,7 @@ router.post('/reg', (req, res)=>{
           newUser.save()
           .then(sUser=>{
             console.log(sUser);
-            res.redirect(`/profile/${sUser._id}`);
+            res.redirect(`/profile`);
           })
           .catch(err=>{
             console.log(err);
@@ -98,24 +134,22 @@ router.post('/login', (req, res)=>{
   const { email, password } = req.body;
 
   userModel.findOne({email})
-  .then(fuser =>{
-    if(!fuser) res.send('user not found!');
+  .then(user =>{
+    if(!user) res.send('user not found!');
 
-    bcrypt.compare(password, fuser.password)
+    bcrypt.compare(password, user.password)
     .then(isMatch =>{
       if(!isMatch) res.send('incorrect password!');
 
-      const token = jwt.sign({fuser}, 'djiefdj3df;dkd', { expiresIn: 3600 });
-      req.header('auth-token', token);
-      res.redirect(`/profile/${fuser._id}`);
+      const token = jwt.sign({user}, 'djiefdj3df;dkd', { expiresIn: 3600 });
+      G_Token = token;
+      //req.header('auth-token', token);
+      res.cookie('auth-token', token, {
+        httpOnly: true
+        })
+      .redirect(`/profile`);
     });
   });
-
 });
-
-router.get('/logout', (req, res)=>{
-
-});
-
 
 module.exports = router;
