@@ -18,9 +18,11 @@
             <% if(!login){%>
 
                 <a href="/"><li>SignUp</li></a>
-                <a href="loginp"><li>SignIn</li></a>
+                <a href="/loginp"><li>SignIn</li></a>
 
-            <%} %>
+            <%}else{%>
+                <a href="/resetpass"><li>Reset Password</li></a>
+            <% } %>
         </ul>
     </nav>
     <main>

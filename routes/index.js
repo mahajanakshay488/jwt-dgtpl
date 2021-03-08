@@ -2,11 +2,14 @@ var express = require('express');
 var router = express.Router();
 const userModel = require('./users');
 
+const nodemailer = require('nodemailer');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const {isLoggedIn} = require('./verifyToken');
+const nodemon = require('nodemon');
+const { getMaxListeners } = require('./users');
 
 let G_Token = null;
 
@@ -28,6 +31,7 @@ router.get('/*', (req,res,next)=>{
   req.header('auth-token', G_Token);
   next();
 });
+
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -67,6 +71,16 @@ router.get('/edit/:id', (req, res)=>{
   .catch(err => res.send(err));
 });
 
+/* Reset-Pass-page. */
+router.get('/resetpass', isLoggedIn, (req, res)=>{
+  res.render('resetpass', {login: true});
+});
+
+/* Forget-Pass-page. */
+router.get('/forgetpass', (req, res)=>{
+  res.render('forgetpass', {login: false});
+});
+
 /* Update Profile route */
 router.post('/updateinfo/:id', (req, res)=>{
   
@@ -84,6 +98,86 @@ router.post('/updateinfo/:id', (req, res)=>{
     res.redirect('/profile');
   })
   .catch(err=> res.send('internal server problem !'));
+});
+
+/* Reset-Password Route. */
+router.post('/resetpassword', isLoggedIn, (req, res)=>{
+
+  // const errors = validationResult(req);
+  // if(!errors.isEmpty()) res.send(errors.errors);
+
+  const {newpassword, oldpassword} = req.body;
+
+  userModel.findById(req.user._id)
+  .then(user=>{
+
+    if(!user) return res.status(401).json({message: 'User not found'});
+
+    bcrypt.compare(oldpassword, user.password)
+    .then(isMatch =>{
+      if(!isMatch) res.send('incorrect Password!');
+
+      bcrypt.genSalt(10, (err, salt) =>{
+        bcrypt.hash(newpassword, salt, (err, hash)=>{
+          if(err) throw err;
+          user.password = hash;
+          user.save()
+          .then(s =>{
+            res.send(s);
+          });
+        });
+      });
+    });
+
+  })
+  .catch(err=>res.json({message: 'some error!', val: err}));
+});
+
+/* Forget-Password Route. */
+router.post('/forgetpassword', (req, res) => {
+  const email = req.body.email;
+
+  // generate password
+   var password = '';
+   var passchar       = 'ABCDEFGHIJKLMNOP2467777QRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charlength = passchar.length;
+   for ( var i = 0; i < 8; i++ ) {
+      password += passchar.charAt(Math.floor(Math.random() * charlength));
+   }
+  
+  userModel.findOne({email: email})
+  .then(user =>{
+    if(!user) res.send('user not found!');
+
+    const transporter = nodemailer.createTransport({
+      service: 'hotmail',
+      auth:{
+        user: 'mahajanakshay488@outlook.com',
+        pass: 'Akshay@2001', 
+      }
+    });
+
+    const mailOptions = {
+      from: "'JWT Auth' <mahajanakshay488@outlook.com>",
+      to: email.trim(),
+      subject: "Auto Generated Password",
+      text: `Your password is: "${password}".`
+    };
+
+    transporter.sendMail(mailOptions, (err, info)=>{
+      if(err) res.send(err);
+
+      bcrypt.genSalt(10, (err, salt)=>{
+        bcrypt.hash(password, salt, (err, hash) => {
+          if(err) throw err;
+          user.password = hash;
+          user.save()
+          .then( s => res.redirect('/loginp') );
+        });
+      });
+    });
+  })
+  .catch(err => res.send(err));
 });
 
 /* Profile-Pic-Upload Route. */

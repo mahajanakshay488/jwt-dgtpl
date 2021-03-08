@@ -1,10 +1,19 @@
 <% include ./partials/header.ejs %>
 
+<style>
+  form a{
+    text-decoration: none;
+    color: rgb(0, 0, 0);
+    margin-top: 20px;
+  }
+</style>
+
   <form action="/login" method="POST">
     <h4>Sign In</h4>
     <input type="email" name="email" placeholder="email" required>
     <input type="password" name="password" placeholder="password">
     <input type="submit" value="login">
+    <a href="/forgetpass">forget password!</a>
   </form>
 
 <% include ./partials/footer.ejs %>

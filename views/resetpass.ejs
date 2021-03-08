@@ -1,0 +1,10 @@
+<% include ./partials/header.ejs %>
+
+  <form action="/resetpassword" method="POST">
+    <h4>Reset Password</h4>
+    <input type="password" name="oldpassword" placeholder="Old Password" required>
+    <input type="password" name="newpassword" placeholder="New Password", required>
+    <input type="submit" value="Reset Password">
+  </form>
+
+<% include ./partials/footer.ejs %>
